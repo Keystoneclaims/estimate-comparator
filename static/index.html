@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estimate Compare</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --ink: #132033;
+      --muted: #667085;
+      --line: #dbe3ef;
+      --brand: #102a43;
+      --brand2: #2563eb;
+      --soft: #eef4ff;
+      --good: #0f7a45;
+      --good-bg: #e9f9f0;
+      --warn: #a15c00;
+      --warn-bg: #fff6df;
+      --bad: #b42318;
+      --bad-bg: #fff0ee;
+      --blue-bg: #ecf7ff;
+      --shadow: 0 14px 35px rgba(16, 42, 67, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; }
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #123452 55%, #1d4ed8 100%);
+      color: white;
+      padding: 34px 20px 82px;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #bfdbfe; font-weight: 800; margin-bottom: 12px; }
+    h1 { font-size: clamp(32px, 5vw, 58px); line-height: 1.02; margin: 0; max-width: 830px; }
+    .hero p { color: #dbeafe; max-width: 760px; font-size: 18px; line-height: 1.55; margin: 18px 0 0; }
+    main { max-width: 1120px; margin: -52px auto 40px; padding: 0 20px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+    .card-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    h2 { margin: 0; font-size: 24px; }
+    h3 { margin: 0 0 8px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .step { background: #f8fbff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; }
+    .num { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--brand); color: white; font-weight: 800; flex: 0 0 auto; }
+    .step strong { display: block; margin-bottom: 3px; }
+    .upload-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .drop {
+      border: 2px dashed #b7c7dc;
+      background: #f8fbff;
+      border-radius: 20px;
+      padding: 22px;
+      min-height: 176px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: .15s ease;
+      position: relative;
+    }
+    .drop:hover, .drop.dragover { border-color: var(--brand2); background: var(--soft); }
+    .drop label { font-weight: 850; font-size: 18px; margin-bottom: 8px; display: block; }
+    .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .file-pill { margin-top: 13px; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 8px 11px; background: white; border: 1px solid var(--line); color: var(--muted); width: fit-content; max-width: 100%; }
+    .file-pill strong { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+    .big-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; align-items: center; }
+    button, .fake-link {
+      appearance: none;
+      border: 0;
+      background: var(--brand);
+      color: white;
+      font-weight: 850;
+      border-radius: 14px;
+      padding: 13px 18px;
+      cursor: pointer;
+      font-size: 15px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button:hover, .fake-link:hover { filter: brightness(1.05); }
+    button:disabled { background: #98a2b3; cursor: not-allowed; filter: none; }
+    .secondary { background: #475467; }
+    .light-btn { background: #eff4ff; color: #1d4ed8; border: 1px solid #c7d7fe; }
+    .danger-soft { background: var(--bad-bg); color: var(--bad); border: 1px solid #ffd1cc; }
+    .error { color: var(--bad); background: var(--bad-bg); border: 1px solid #ffd1cc; padding: 12px 14px; border-radius: 14px; margin-top: 14px; }
+    .success { color: var(--good); background: var(--good-bg); border: 1px solid #c3eed4; padding: 12px 14px; border-radius: 14px; margin-top: 14px; }
+    .dashboard { display: none; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .metric { border-radius: 18px; border: 1px solid var(--line); background: #fbfcff; padding: 16px; }
+    .metric span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .metric strong { font-size: 26px; line-height: 1; }
+    .metric.primary { background: #ecf7ff; border-color: #bddffd; }
+    .metric.bad { background: var(--bad-bg); border-color: #ffd1cc; }
+    .metric.good { background: var(--good-bg); border-color: #c3eed4; }
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tab { background: #f2f4f7; color: #344054; border: 1px solid #e4e7ec; padding: 10px 13px; }
+    .tab.active { background: var(--brand); color: white; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .missing-list { display: grid; gap: 12px; }
+    .missing-card { border: 1px solid #ffd1cc; background: #fffafa; border-radius: 18px; padding: 17px; }
+    .missing-card .top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .tag { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-weight: 800; font-size: 12px; }
+    .tag.missing { color: var(--bad); background: var(--bad-bg); }
+    .tag.changed { color: var(--warn); background: var(--warn-bg); }
+    .tag.matched { color: var(--good); background: var(--good-bg); }
+    .tag.carrier { color: #075985; background: var(--blue-bg); }
+    .language { background: white; border-left: 5px solid var(--brand); border-radius: 12px; padding: 12px; margin-top: 12px; color: #344054; }
+    .copy-area { width: 100%; min-height: 260px; border: 1px solid var(--line); border-radius: 16px; padding: 14px; font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #263446; background: #fbfcff; resize: vertical; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid #e4e7ec; padding: 12px 10px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; color: #667085; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; }
+    .table-wrap { overflow-x: auto; max-height: 620px; border: 1px solid var(--line); border-radius: 16px; }
+    .empty { border: 1px dashed var(--line); border-radius: 16px; padding: 22px; text-align: center; color: var(--muted); background: #fbfcff; }
+    .footer-note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .template { margin-left: auto; }
+    @media (max-width: 900px) {
+      main { margin-top: -42px; }
+      .steps, .upload-grid, .metrics { grid-template-columns: 1fr; }
+      .card { padding: 18px; border-radius: 18px; }
+      .hero { padding-bottom: 70px; }
+      .template { margin-left: 0; }
+      .section-head, .card-title { flex-direction: column; align-items: flex-start; }
+    }
+    @media print {
+      .hero, #uploadCard, .tabs, .big-actions, .footer-note, .no-print { display: none !important; }
+      main { margin: 0; max-width: none; padding: 0; }
+      .card { box-shadow: none; border: none; page-break-inside: avoid; }
+      .dashboard { display: block !important; }
+      .panel { display: block !important; }
+      .copy-area { border: none; min-height: auto; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="kicker">Insurance estimate review tool</div>
+      <h1>Compare the carrier estimate against your estimate in one simple screen.</h1>
+      <p>Upload both spreadsheets, then get totals, missing scope, changed line items, and ready-to-copy rebuttal language explaining why the missing items belong in the estimate.</p>
+    </div>
+  </section>
+
+  <main>
+    <section class="card" id="uploadCard">
+      <div class="card-title">
+        <div>
+          <h2>Start here</h2>
+          <div class="muted small">Use CSV or XLSX exports. The first row should contain headers.</div>
+        </div>
+        <a class="fake-link light-btn template" href="#formatHelp">Required columns</a>
+      </div>
+
+      <div class="steps">
+        <div class="step"><span class="num">1</span><div><strong>Upload carrier estimate</strong><span class="muted small">The insurance company estimate.</span></div></div>
+        <div class="step"><span class="num">2</span><div><strong>Upload your estimate</strong><span class="muted small">Your full estimate or rebuttal scope.</span></div></div>
+        <div class="step"><span class="num">3</span><div><strong>Click compare</strong><span class="muted small">Review missing items and copy the summary.</span></div></div>
+      </div>
+
+      <div class="upload-grid">
+        <div class="drop" data-target="carrierFile">
+          <label>Insurance company estimate</label>
+          <div class="muted">Drop the carrier CSV/XLSX here or click to choose file.</div>
+          <input id="carrierFile" type="file" accept=".csv,.xlsx" />
+          <div class="file-pill"><span>📄</span><strong id="carrierName">No file selected</strong></div>
+        </div>
+        <div class="drop" data-target="companyFile">
+          <label>Our estimate</label>
+          <div class="muted">Drop your CSV/XLSX here or click to choose file.</div>
+          <input id="companyFile" type="file" accept=".csv,.xlsx" />
+          <div class="file-pill"><span>📄</span><strong id="companyName">No file selected</strong></div>
+        </div>
+      </div>
+
+      <div class="big-actions">
+        <button id="compareBtn">Compare estimates</button>
+        <button id="clearBtn" class="danger-soft" type="button">Clear</button>
+        <span class="muted small">Nothing is saved in this starter version. Files are only processed for the comparison.</span>
+      </div>
+      <div id="message"></div>
+    </section>
+
+    <section class="dashboard" id="dashboard">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Results summary</h2>
+            <div class="muted small" id="resultCaption">Comparison complete.</div>
+          </div>
+          <div class="big-actions no-print" style="margin-top:0">
+            <button id="copyBtn" class="light-btn">Copy rebuttal summary</button>
+            <button id="printBtn" class="secondary">Print / save PDF</button>
+          </div>
+        </div>
+        <div id="metrics" class="metrics"></div>
+      </section>
+
+      <section class="card">
+        <div class="tabs no-print">
+          <button class="tab active" data-panel="missingPanel">Missing items</button>
+          <button class="tab" data-panel="rebuttalPanel">Rebuttal summary</button>
+          <button class="tab" data-panel="changedPanel">Changed items</button>
+          <button class="tab" data-panel="allPanel">All line items</button>
+        </div>
+
+        <div id="missingPanel" class="panel active">
+          <div class="section-head">
+            <div>
+              <h2>Missing Items Summary</h2>
+              <div class="muted small">Items in your estimate that were not strongly matched to the carrier estimate.</div>
+            </div>
+          </div>
+          <div id="missingList" class="missing-list"></div>
+        </div>
+
+        <div id="rebuttalPanel" class="panel">
+          <h2>Carrier-facing rebuttal summary</h2>
+          <p class="muted small">Copy and paste this into an email, letter, or claim note. Edit the intro and claim details as needed.</p>
+          <textarea id="rebuttalText" class="copy-area"></textarea>
+        </div>
+
+        <div id="changedPanel" class="panel">
+          <h2>Changed line items</h2>
+          <p class="muted small">These were matched, but quantity, unit price, or total changed.</p>
+          <div id="changedRows"></div>
+        </div>
+
+        <div id="allPanel" class="panel">
+          <h2>Full line item comparison</h2>
+          <p class="muted small">Detailed view for review and troubleshooting.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Room</th>
+                  <th>Carrier item</th>
+                  <th>Our item</th>
+                  <th>Qty diff</th>
+                  <th>Unit price diff</th>
+                  <th>Total diff</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody id="allRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="card" id="formatHelp">
+      <h2>Simple file format</h2>
+      <p class="muted">For the cleanest results, export both estimates to CSV or XLSX with columns like:</p>
+      <div class="table-wrap" style="max-height:none">
+        <table>
+          <thead><tr><th>room</th><th>category</th><th>description</th><th>quantity</th><th>unit</th><th>unit price</th><th>total</th></tr></thead>
+          <tbody><tr><td>Kitchen</td><td>Cabinetry</td><td>Detach and reset base cabinets</td><td>12</td><td>LF</td><td>35.00</td><td>420.00</td></tr></tbody>
+        </table>
+      </div>
+      <p class="footer-note">Recognized aliases include area/location for room, trade/category, item/description/line item, qty/quantity, uom/unit, price/unit cost, and amount/RCV/total. PDF parsing is not enabled in this starter version; export PDF estimates to CSV/XLSX first.</p>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const fmtMoney = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0));
+    const fmtNum = (n) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    let lastData = null;
+
+    function setMessage(html, type = 'error') {
+      $('message').innerHTML = html ? `<div class="${type}">${html}</div>` : '';
+    }
+
+    function updateFileNames() {
+      $('carrierName').textContent = $('carrierFile').files[0]?.name || 'No file selected';
+      $('companyName').textContent = $('companyFile').files[0]?.name || 'No file selected';
+    }
+
+    function setupDropZones() {
+      document.querySelectorAll('.drop').forEach(zone => {
+        const input = $(zone.dataset.target);
+        ['dragenter', 'dragover'].forEach(evt => zone.addEventListener(evt, e => {
+          e.preventDefault();
+          zone.classList.add('dragover');
+        }));
+        ['dragleave', 'drop'].forEach(evt => zone.addEventListener(evt, e => {
+          e.preventDefault();
+          zone.classList.remove('dragover');
+        }));
+        zone.addEventListener('drop', e => {
+          if (e.dataTransfer.files?.length) {
+            input.files = e.dataTransfer.files;
+            updateFileNames();
+          }
+        });
+        input.addEventListener('change', updateFileNames);
+      });
+    }
+
+    function badge(status) {
+      const map = {
+        missing_from_carrier: ['Missing', 'missing'],
+        changed: ['Changed', 'changed'],
+        matched: ['Matched', 'matched'],
+        only_in_carrier: ['Only in carrier', 'carrier']
+      };
+      const value = map[status] || [status, 'carrier'];
+      return `<span class="tag ${value[1]}">${value[0]}</span>`;
+    }
+
+    function itemLabel(line) {
+      if (!line) return '<span class="muted">—</span>';
+      return `<strong>${escapeHtml(line.description || '')}</strong><br><span class="muted small">${escapeHtml(line.category || '')} • ${fmtNum(line.quantity)} ${escapeHtml(line.unit || '')} @ ${fmtMoney(line.unit_price)} = ${fmtMoney(line.total)}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[ch]));
+    }
+
+    function renderMetrics(summary) {
+      $('metrics').innerHTML = `
+        <div class="metric"><span>Carrier total</span><strong>${fmtMoney(summary.carrier_total)}</strong></div>
+        <div class="metric"><span>Our estimate total</span><strong>${fmtMoney(summary.company_total)}</strong></div>
+        <div class="metric primary"><span>Total difference</span><strong>${fmtMoney(summary.total_difference)}</strong></div>
+        <div class="metric bad"><span>Missing items</span><strong>${summary.missing_from_carrier_count}</strong></div>
+        <div class="metric"><span>Changed items</span><strong>${summary.changed_count}</strong></div>
+        <div class="metric"><span>Carrier-only items</span><strong>${summary.only_in_carrier_count}</strong></div>
+        <div class="metric good"><span>Matched items</span><strong>${summary.matched_count}</strong></div>
+        <div class="metric"><span>Review status</span><strong>Ready</strong></div>`;
+    }
+
+    function renderMissing(items) {
+      if (!items?.length) {
+        $('missingList').innerHTML = '<div class="empty">No missing items were detected.</div>';
+        return;
+      }
+      $('missingList').innerHTML = items.map((item, i) => `
+        <article class="missing-card">
+          <div class="top">
+            <div>
+              <h3>${i + 1}. ${escapeHtml(item.description)}${item.room ? ' — ' + escapeHtml(item.room) : ''}</h3>
+              <div class="muted small">${escapeHtml(item.category || 'Uncategorized')} • ${fmtNum(item.quantity)} ${escapeHtml(item.unit || '')} • ${fmtMoney(item.total)}</div>
+            </div>
+            <span class="tag missing">Missing from carrier</span>
+          </div>
+          <p><strong>Why included:</strong> ${escapeHtml(item.reason_included)}</p>
+          <div class="language"><strong>Suggested language:</strong><br>${escapeHtml(item.suggested_carrier_language)}</div>
+        </article>`).join('');
+    }
+
+    function rowHtml(row) {
+      const room = row.company?.room || row.carrier?.room || '';
+      return `<tr>
+        <td>${badge(row.status)}<br><span class="muted small">Match ${fmtNum(row.match_score)}%</span></td>
+        <td>${escapeHtml(room)}</td>
+        <td>${itemLabel(row.carrier)}</td>
+        <td>${itemLabel(row.company)}</td>
+        <td>${fmtNum(row.quantity_delta)}</td>
+        <td>${fmtMoney(row.unit_price_delta)}</td>
+        <td><strong>${fmtMoney(row.total_delta)}</strong></td>
+        <td>${escapeHtml(row.note || '')}</td>
+      </tr>`;
+    }
+
+    function renderRows(rows) {
+      $('allRows').innerHTML = rows.map(rowHtml).join('');
+      const changed = rows.filter(r => r.status === 'changed');
+      if (!changed.length) {
+        $('changedRows').innerHTML = '<div class="empty">No changed items were detected.</div>';
+        return;
+      }
+      $('changedRows').innerHTML = `<div class="table-wrap"><table><thead><tr><th>Status</th><th>Room</th><th>Carrier item</th><th>Our item</th><th>Qty diff</th><th>Unit price diff</th><th>Total diff</th><th>Note</th></tr></thead><tbody>${changed.map(rowHtml).join('')}</tbody></table></div>`;
+    }
+
+    function buildRebuttal(data) {
+      const s = data.summary;
+      const lines = [];
+      lines.push('Estimate Comparison Summary');
+      lines.push('');
+      lines.push(`Carrier estimate total: ${fmtMoney(s.carrier_total)}`);
+      lines.push(`Our estimate total: ${fmtMoney(s.company_total)}`);
+      lines.push(`Difference: ${fmtMoney(s.total_difference)}`);
+      lines.push(`Missing items from carrier estimate: ${s.missing_from_carrier_count}`);
+      lines.push(`Changed items: ${s.changed_count}`);
+      lines.push('');
+      if (data.missing_item_summaries?.length) {
+        lines.push('Missing Items and Basis for Inclusion:');
+        data.missing_item_summaries.forEach((item, i) => {
+          lines.push('');
+          lines.push(`${i + 1}. ${item.description}${item.room ? ' — ' + item.room : ''}`);
+          lines.push(`Amount: ${fmtMoney(item.total)} | Quantity: ${fmtNum(item.quantity)} ${item.unit || ''}`);
+          lines.push(`Reason included: ${item.reason_included}`);
+          lines.push(`Carrier language: ${item.suggested_carrier_language}`);
+        });
+      } else {
+        lines.push('No missing items were detected based on the current match settings.');
+      }
+      lines.push('');
+      lines.push('Please review and revise the carrier estimate to include the omitted scope items and any related repair sequence items necessary to restore the affected property to its pre-loss condition.');
+      return lines.join('\n');
+    }
+
+    function renderAll(data) {
+      lastData = data;
+      renderMetrics(data.summary);
+      renderMissing(data.missing_item_summaries);
+      renderRows(data.rows);
+      $('rebuttalText').value = buildRebuttal(data);
+      $('dashboard').style.display = 'block';
+      $('resultCaption').textContent = `Compared ${$('carrierFile').files[0]?.name || 'carrier estimate'} against ${$('companyFile').files[0]?.name || 'our estimate'}.`;
+      $('dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function compare() {
+      const carrier = $('carrierFile').files[0];
+      const company = $('companyFile').files[0];
+      setMessage('');
+      if (!carrier || !company) {
+        setMessage('Please upload both the insurance company estimate and your estimate.');
+        return;
+      }
+      const fd = new FormData();
+      fd.append('carrier_file', carrier);
+      fd.append('company_file', company);
+      $('compareBtn').disabled = true;
+      $('compareBtn').textContent = 'Comparing...';
+      try {
+        const response = await fetch('/compare', { method: 'POST', body: fd });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'The comparison failed.');
+        renderAll(data);
+        setMessage('Comparison complete. Review the missing items below.', 'success');
+      } catch (err) {
+        setMessage(escapeHtml(err.message || 'Something went wrong.'));
+      } finally {
+        $('compareBtn').disabled = false;
+        $('compareBtn').textContent = 'Compare estimates';
+      }
+    }
+
+    function clearAll() {
+      $('carrierFile').value = '';
+      $('companyFile').value = '';
+      updateFileNames();
+      setMessage('');
+      $('dashboard').style.display = 'none';
+      lastData = null;
+    }
+
+    function setupTabs() {
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+          btn.classList.add('active');
+          $(btn.dataset.panel).classList.add('active');
+        });
+      });
+    }
+
+    async function copySummary() {
+      const text = $('rebuttalText').value || (lastData ? buildRebuttal(lastData) : '');
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      setMessage('Rebuttal summary copied.', 'success');
+    }
+
+    setupDropZones();
+    setupTabs();
+    $('compareBtn').addEventListener('click', compare);
+    $('clearBtn').addEventListener('click', clearAll);
+    $('copyBtn').addEventListener('click', copySummary);
+    $('printBtn').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>
