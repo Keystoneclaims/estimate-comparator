@@ -1,0 +1,6 @@
+room,category,description,quantity,unit,unit_price,total
+Kitchen,Drywall,Replace 1/2 drywall,80,SF,3.25,260
+Kitchen,Paint,Seal and paint walls,200,SF,1.10,220
+Kitchen,Flooring,Remove and replace laminate flooring,120,SF,5.75,690
+Bathroom,Plumbing,Detach and reset toilet,1,EA,95,95
+Living Room,Baseboard,Replace baseboard,40,LF,4.50,180
